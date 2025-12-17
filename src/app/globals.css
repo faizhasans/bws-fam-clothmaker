@@ -35,6 +35,31 @@ img, picture, video, canvas, svg {
   max-width: 100%;
 }
 
+/* Font Awesome fallback - prevent layout shift before CSS loads */
+.fa, .fas, .far, .fal, .fab, .fa-solid, .fa-regular, .fa-light, .fa-brands {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+}
+
+/* Font Awesome - Force font-display: swap for better LCP */
+@font-face {
+  font-family: 'Font Awesome 6 Free';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.woff2) format('woff2');
+}
+
+@font-face {
+  font-family: 'Font Awesome 6 Brands';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-brands-400.woff2) format('woff2');
+}
+
 /* GPU acceleration for animations */
 .hover\:scale-105,
 .hover\:shadow-xl,

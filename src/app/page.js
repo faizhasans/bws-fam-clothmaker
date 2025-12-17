@@ -395,7 +395,8 @@ export default function Home() {
                 height={50} 
                 className="rounded-lg mr-4"
                 priority
-                quality={90}
+                quality={75}
+                sizes="50px"
               />
               <div className="text-2xl font-bold text-[#7F0606]">FAM.CLOTHMAKER</div>
             </div>

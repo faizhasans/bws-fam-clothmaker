@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -79,10 +80,11 @@ export default function RootLayout({ children }) {
         {/* Preload critical assets */}
         <link rel="preload" href="/img/logo.webp" as="image" type="image/webp" />
         
-        {/* Font Awesome */}
+        {/* Preload Font Awesome CSS only - fonts handled by @font-face with font-display:swap */}
         <link 
-          rel="stylesheet" 
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          rel="preload" 
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" 
+          as="style"
         />
         
         <link rel="alternate" hrefLang="id" href="https://fam-clothmaker.web.app" />
@@ -93,6 +95,22 @@ export default function RootLayout({ children }) {
         suppressHydrationWarning
       >
         {children}
+        
+        {/* Font Awesome - Load async after page is interactive */}
+        <Script 
+          id="font-awesome-loader"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                var link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
+                document.head.appendChild(link);
+              })();
+            `
+          }}
+        />
       </body>
     </html>
   );

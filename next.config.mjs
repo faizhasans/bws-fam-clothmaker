@@ -14,6 +14,25 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  webpack: (config, { isServer }) => {
+    // Remove polyfills for modern browsers
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+      
+      // Explicitly exclude polyfills
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'core-js/modules': false,
+      };
+    }
+    
+    return config;
+  },
 };
 
 export default nextConfig;

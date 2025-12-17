@@ -75,46 +75,33 @@ export default function Home() {
   // Track active section for bottom nav
   useEffect(() => {
     const sections = ['home', 'about', 'services', 'gallery', 'contact'];
-    let ticking = false;
-
-    // Method 1: Scroll-based detection (more reliable)
-    const updateActiveSection = () => {
-      const scrollPosition = window.scrollY + window.innerHeight / 3;
-      
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const element = document.getElementById(sections[i]);
-        if (element) {
-          const { offsetTop } = element;
-          if (scrollPosition >= offsetTop) {
-            setActiveSection(sections[i]);
-            break;
-          }
-        }
-      }
-      ticking = false;
-    };
-
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(updateActiveSection);
-        ticking = true;
-      }
-    };
-
-    // Method 2: Intersection Observer (backup)
+    let currentActive = 'home';
+    
     const observerOptions = {
-      threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
-      rootMargin: '-10% 0px -10% 0px'
+      threshold: Array.from({ length: 21 }, (_, i) => i * 0.05), // 0, 0.05, 0.1, ... 1
+      rootMargin: '0px 0px -50% 0px' // Bottom half of viewport
     };
 
     const observer = new IntersectionObserver((entries) => {
+      // Find entry with highest intersection ratio
+      let highestRatio = 0;
+      let highestId = currentActive;
+      
       entries.forEach(entry => {
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.25) {
-          setActiveSection(entry.target.id);
+        if (entry.isIntersecting && entry.intersectionRatio > highestRatio) {
+          highestRatio = entry.intersectionRatio;
+          highestId = entry.target.id;
         }
       });
+      
+      // Only update if we have a significantly visible section
+      if (highestRatio > 0.05) {
+        currentActive = highestId;
+        setActiveSection(highestId);
+      }
     }, observerOptions);
 
+    // Observe all sections
     sections.forEach(id => {
       const element = document.getElementById(id);
       if (element) {
@@ -122,15 +109,8 @@ export default function Home() {
       }
     });
 
-    // Add scroll listener
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    // Initial check
-    updateActiveSection();
-
     return () => {
       observer.disconnect();
-      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
@@ -356,6 +336,16 @@ export default function Home() {
     ]
   }), []);
 
+  const websiteSchema = useMemo(() => ({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "FAM.CLOTHMAKER",
+    "alternateName": "FAM Clothmaker Yogyakarta",
+    "url": "https://fam-clothmaker.web.app",
+    "description": "Konveksi pakaian premium di Yogyakarta. Produksi massal jaket, kaos, kemeja dengan garansi & konsultasi gratis.",
+    "inLanguage": "id-ID"
+  }), []);
+
   useEffect(() => {
     // Inject Schema.org JSON-LD
     const injectSchema = (schema, id) => {
@@ -368,18 +358,19 @@ export default function Home() {
       document.head.appendChild(script);
     };
 
+    injectSchema(websiteSchema, 'website-schema');
     injectSchema(organizationSchema, 'organization-schema');
     injectSchema(serviceSchema, 'service-schema');
     injectSchema(faqSchema, 'faq-schema');
 
     return () => {
       // Cleanup
-      ['organization-schema', 'service-schema', 'faq-schema'].forEach(id => {
+      ['website-schema', 'organization-schema', 'service-schema', 'faq-schema'].forEach(id => {
         const script = document.getElementById(id);
         if (script) script.remove();
       });
     };
-  }, [organizationSchema, serviceSchema, faqSchema]);
+  }, [websiteSchema, organizationSchema, serviceSchema, faqSchema]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -413,11 +404,13 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section id="home" className="relative bg-gradient-to-r from-red-800 to-red-900 text-white" style={{background: 'linear-gradient(to right, #7F0606, #5A0404)'}}>
-        <div className="absolute inset-0 bg-black opacity-20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
-          <div className="text-center">
+      {/* Main Content */}
+      <main>
+        {/* Hero Section */}
+        <section id="home" className="relative bg-gradient-to-r from-red-800 to-red-900 text-white" style={{background: 'linear-gradient(to right, #7F0606, #5A0404)'}}>
+          <div className="absolute inset-0 bg-black opacity-20"></div>
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
+            <div className="text-center">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
               FAM.CLOTHMAKER
             </h1>
@@ -760,18 +753,22 @@ export default function Home() {
             </div>
 
             {/* Slide Indicators */}
-            <div className="flex justify-center items-center gap-2 mt-8">
+            <div className="flex justify-center items-center gap-1 mt-8">
               {Array.from({ length: totalSlides }).map((_, index) => (
                 <button
                   key={index}
                   onClick={() => goToSlide(index)}
-                  className={`rounded-full transition-all duration-300 ${
-                    galleryCurrentSlide === index 
-                      ? 'bg-[#7F0606] w-8 h-2' 
-                      : 'bg-gray-300 hover:bg-gray-400 w-2 h-2'
-                  }`}
+                  className="relative p-3 min-w-[48px] min-h-[48px] flex items-center justify-center"
                   aria-label={`Go to slide ${index + 1}`}
-                />
+                >
+                  <span 
+                    className={`rounded-full transition-all duration-300 ${
+                      galleryCurrentSlide === index 
+                        ? 'bg-[#7F0606] w-8 h-2' 
+                        : 'bg-gray-300 hover:bg-gray-400 w-2 h-2'
+                    }`}
+                  />
+                </button>
               ))}
             </div>
           </div>
@@ -1007,6 +1004,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      </main>
 
       {/* Mobile Bottom Navigation */}
       <nav className="fixed bottom-4 left-4 right-4 bg-white md:hidden z-40 rounded-2xl shadow-2xl border border-gray-100">
@@ -1070,8 +1068,9 @@ export default function Home() {
         rel="noopener noreferrer"
         className="fixed bottom-24 right-6 md:bottom-6 md:right-6 z-50 w-14 h-14 md:w-16 md:h-16 bg-green-500 hover:bg-green-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group"
         aria-label="Chat WhatsApp"
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
-        <i className="fab fa-whatsapp text-white text-2xl md:text-3xl group-hover:scale-110 transition-transform"></i>
+        <i className="fab fa-whatsapp text-white text-2xl md:text-3xl group-hover:scale-110 transition-transform" style={{ lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1em', height: '1em' }}></i>
       </a>
 
       {/* Footer */}
@@ -1079,7 +1078,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h3 className="text-2xl font-bold mb-4">FAM.CLOTHMAKER</h3>
-            <p className="text-gray-400 mb-6 max-w-2xl mx-auto">
+            <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
               Mitra terpercaya untuk konveksi pakaian berkualitas di Yogyakarta. 
               Kami mengutamakan kualitas dan kepuasan pelanggan.
             </p>
@@ -1093,7 +1092,7 @@ export default function Home() {
             </div>
 
             <div className="border-t border-gray-800 pt-8">
-              <p className="text-gray-500 text-sm">
+              <p className="text-gray-300 text-sm">
                 © 2025 FAM.CLOTHMAKER. All rights reserved. | Yogyakarta, Indonesia
               </p>
             </div>

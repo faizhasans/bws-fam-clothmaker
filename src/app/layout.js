@@ -106,23 +106,11 @@ export default function RootLayout({ children }) {
           @media(min-width:768px){.md\\:block{display:block}.md\\:hidden{display:none}.md\\:text-6xl{font-size:3.75rem;line-height:1}}
         `}} />
         
-        <link 
-          rel="preconnect" 
-          href="https://cdnjs.cloudflare.com" 
-          crossOrigin="anonymous"
-        />
-        <link 
-          rel="preconnect" 
-          href="https://firebase.googleapis.com" 
-          crossOrigin="anonymous"
-        />
-        <link 
-          rel="preconnect" 
-          href="https://firebasestorage.googleapis.com" 
-          crossOrigin="anonymous"
-        />
+        {/* Preconnect to reduce latency */}
+        <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://firebaseinstallations.googleapis.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://firebaseinstallations.googleapis.com" />
         
         {/* Preload critical assets */}
         <link rel="preload" href="/img/logo.webp" as="image" type="image/webp" />
@@ -145,28 +133,39 @@ export default function RootLayout({ children }) {
         
         <link rel="alternate" hrefLang="id" href="https://fam-clothmaker.web.app" />
         <link rel="alternate" hrefLang="x-default" href="https://fam-clothmaker.web.app" />
+        
+        {/* Minimal Font Awesome - Only used icons */}
+        <style dangerouslySetInnerHTML={{__html: `
+          .fa,.fas,.far,.fab{font-family:'Font Awesome 6 Free','Font Awesome 6 Brands';font-weight:900;font-style:normal;display:inline-block;line-height:1;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+          .fab{font-family:'Font Awesome 6 Brands';font-weight:400}
+          .fa-building:before{content:"\\f1ad"}
+          .fa-vest:before{content:"\\e085"}
+          .fa-tshirt:before{content:"\\f553"}
+          .fa-user-tie:before{content:"\\f508"}
+          .fa-glasses:before{content:"\\f530"}
+          .fa-shield-alt:before{content:"\\f3ed"}
+          .fa-comments:before{content:"\\f086"}
+          .fa-star:before{content:"\\f005"}
+          .fa-chevron-left:before{content:"\\f053"}
+          .fa-chevron-right:before{content:"\\f054"}
+          .fa-arrow-right:before{content:"\\f061"}
+          .fa-map-marker-alt:before{content:"\\f3c5"}
+          .fa-external-link-alt:before{content:"\\f35d"}
+          .fa-envelope:before{content:"\\f0e0"}
+          .fa-whatsapp:before{content:"\\f232"}
+          .fa-clock:before{content:"\\f017"}
+          .fa-paper-plane:before{content:"\\f1d8"}
+          .fa-home:before{content:"\\f015"}
+          .fa-info-circle:before{content:"\\f05a"}
+          .fa-images:before{content:"\\f302"}
+          .fa-quote-right:before{content:"\\f10e"}
+        `}} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
         {children}
-        
-        {/* Font Awesome - Load after interactive */}
-        <Script 
-          id="font-awesome-css"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                var link = document.createElement('link');
-                link.rel = 'stylesheet';
-                link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
-                document.head.appendChild(link);
-              })();
-            `
-          }}
-        />
       </body>
     </html>
   );

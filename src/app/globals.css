@@ -105,3 +105,44 @@ img, picture, video, canvas, svg {
     opacity: 0;
   }
 }
+
+/* Hero Buttons */
+.btn-primary {
+  background-color: white;
+  color: #7F0606;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  border: 2px solid white;
+  transition: all 0.3s ease;
+  display: inline-block;
+  text-align: center;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background-color: #7F0606;
+  color: white;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  border: 2px solid white;
+  transition: all 0.3s ease;
+  display: inline-block;
+  text-align: center;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background-color: white;
+  color: #7F0606;
+}

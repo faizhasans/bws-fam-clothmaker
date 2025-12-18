@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useEffect, useState, useMemo } from "react";
-import { analytics } from "../lib/firebase";
+// import { analytics } from "../lib/firebase"; // Deferred for performance
 
 export default function Home() {
   // Active section tracking for mobile bottom nav
@@ -176,6 +176,127 @@ export default function Home() {
   const [prevSlide, setPrevSlide] = useState(0);
   const [slideDirection, setSlideDirection] = useState('right');
   const [isAnimating, setIsAnimating] = useState(false);
+
+  // Testimonials data
+  const testimonials = useMemo(() => [
+    {
+      initials: "AP",
+      name: "Andi Prasetyo",
+      role: "Owner Distro Jogja",
+      gradient: "from-[#7F0606] to-[#5A0404]",
+      text: "Kualitas jahitan rapi banget, bahan juga sesuai pesanan. Tim FAM sangat responsif dan membantu dari awal sampai akhir. Sudah order 3x dan selalu puas!",
+      order: "500 pcs Kaos Polo"
+    },
+    {
+      initials: "SR",
+      name: "Siti Rahayu",
+      role: "HRD PT. Maju Bersama",
+      gradient: "from-green-500 to-green-600",
+      text: "Seragam kantor kami dikerjakan dengan sangat profesional. Pengiriman tepat waktu dan packaging rapi. Recommended untuk konveksi kemeja formal!",
+      order: "200 pcs Kemeja Kantor"
+    },
+    {
+      initials: "BW",
+      name: "Budi Wijaya",
+      role: "Ketua Komunitas MTB Jogja",
+      gradient: "from-purple-500 to-purple-600",
+      text: "Jaket komunitas kami hasilnya keren banget! Desain custom diakomodir dengan baik. Harga juga kompetitif untuk kualitas sebagus ini.",
+      order: "150 pcs Jaket Bomber"
+    },
+    {
+      initials: "DM",
+      name: "Diana Maharani",
+      role: "Event Organizer",
+      gradient: "from-pink-500 to-pink-600",
+      text: "Sering pesan merchandise untuk event, dan FAM selalu bisa diandalkan. Proses cepat, kualitas bagus, dan tim yang sangat helpful.",
+      order: "1000 pcs Kaos Event"
+    },
+    {
+      initials: "RH",
+      name: "Rizky Hidayat",
+      role: "Owner Brand Streetwear",
+      gradient: "from-blue-500 to-blue-600",
+      text: "Sudah 2 tahun jadi partner produksi brand saya. Konsistensi kualitas terjaga, dan mereka selalu update soal tren bahan terbaru.",
+      order: "Rutin bulanan"
+    },
+    {
+      initials: "NF",
+      name: "Nadia Fitri",
+      role: "Panitia OSIS SMA",
+      gradient: "from-orange-500 to-orange-600",
+      text: "Kaos angkatan kami jadi yang terbaik! Budget pelajar tapi kualitas tetap oke. Proses konsultasinya juga sabar banget.",
+      order: "300 pcs Kaos Angkatan"
+    }
+  ], []);
+
+  // Testimonial carousel state
+  const [testimonialSlide, setTestimonialSlide] = useState(0);
+  const [testimonialAnimating, setTestimonialAnimating] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [dragStart, setDragStart] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Check if mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const testimonialsPerSlide = isMobile ? 1 : 3;
+  const totalTestimonialSlides = isMobile ? testimonials.length : Math.ceil(testimonials.length / 3);
+  
+  const nextTestimonial = () => {
+    if (testimonialAnimating) return;
+    setTestimonialAnimating(true);
+    setTestimonialSlide((prev) => (prev + 1) % totalTestimonialSlides);
+    setTimeout(() => setTestimonialAnimating(false), 400);
+  };
+
+  const prevTestimonial = () => {
+    if (testimonialAnimating) return;
+    setTestimonialAnimating(true);
+    setTestimonialSlide((prev) => (prev - 1 + totalTestimonialSlides) % totalTestimonialSlides);
+    setTimeout(() => setTestimonialAnimating(false), 400);
+  };
+
+  const getVisibleTestimonials = (slideIndex) => {
+    if (isMobile) {
+      return [testimonials[slideIndex]];
+    }
+    const start = slideIndex * 3;
+    return testimonials.slice(start, start + 3);
+  };
+
+  // Drag handlers for testimonial carousel
+  const handleDragStart = (e) => {
+    if (testimonialAnimating) return;
+    const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+    setDragStart(clientX);
+    setIsDragging(true);
+  };
+
+  const handleDragMove = (e) => {
+    if (!isDragging) return;
+    const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+    const diff = clientX - dragStart;
+    setDragOffset(diff);
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    
+    const threshold = 50;
+    if (dragOffset > threshold) {
+      prevTestimonial();
+    } else if (dragOffset < -threshold) {
+      nextTestimonial();
+    }
+    setDragOffset(0);
+  };
   const itemsPerSlide = 8; // Show 8 items per slide (2 rows x 4 columns on desktop)
   const totalSlides = Math.ceil(galleryProducts.length / itemsPerSlide);
 
@@ -408,29 +529,29 @@ export default function Home() {
       <main>
         {/* Hero Section */}
         <section id="home" className="relative bg-gradient-to-r from-red-800 to-red-900 text-white" style={{background: 'linear-gradient(to right, #7F0606, #5A0404)'}}>
-          <div className="absolute inset-0 bg-black opacity-20"></div>
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
+          <div className="absolute inset-0 bg-black opacity-20 pointer-events-none"></div>
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
             <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
-              FAM.CLOTHMAKER
-            </h1>
-            <p className="text-xl sm:text-2xl mb-4 text-red-100">
-              Konveksi Pakaian Berkualitas Premium di Yogyakarta
-            </p>
-            <p className="text-lg sm:text-xl mb-8 text-red-50 max-w-3xl mx-auto">
-              Spesialis produksi massal jaket, kaos, kemeja, dan fashion item berkualitas dengan jaminan kualitas dan kepuasan pelanggan
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="#contact" className="bg-white px-8 py-3 rounded-lg font-semibold text-[#7F0606] hover:bg-transparent hover:text-white border-2 border-white transition-colors">
-                Konsultasi Gratis
-              </a>
-              <a href="#services" className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-[#7F0606] transition-colors">
-                Layanan Kami
-              </a>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
+                FAM.CLOTHMAKER
+              </h1>
+              <p className="text-xl sm:text-2xl mb-4 text-red-100">
+                Konveksi Pakaian Berkualitas Premium di Yogyakarta
+              </p>
+              <p className="text-lg sm:text-xl mb-8 text-red-50 max-w-3xl mx-auto">
+                Spesialis produksi massal jaket, kaos, kemeja, dan fashion item berkualitas dengan jaminan kualitas dan kepuasan pelanggan
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-20">
+                <a href="#contact" className="btn-primary">
+                  Konsultasi Gratis
+                </a>
+                <a href="#services" className="btn-secondary">
+                  Layanan Kami
+                </a>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0">
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
           <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="white"/>
           </svg>
@@ -647,8 +768,211 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Testimonials Section */}
+      <section id="testimonials" className="py-20 bg-white overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Apa Kata Pelanggan Kami</h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Testimoni dari klien yang telah mempercayakan kebutuhan konveksi mereka kepada FAM.CLOTHMAKER
+            </p>
+          </div>
+
+          {/* Carousel Container */}
+          <div className="relative">
+            {/* Testimonials Slider */}
+            <div className="relative">
+              {/* Mobile Floating Navigation Buttons - on top of card */}
+              <button
+                onClick={prevTestimonial}
+                className="md:hidden absolute left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 flex items-center justify-center rounded-full shadow-lg transition-all duration-300 active:scale-95 bg-white/90 backdrop-blur-sm border border-gray-200"
+                style={{color: '#7F0606'}}
+                aria-label="Previous testimonial"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+              </button>
+
+              <button
+                onClick={nextTestimonial}
+                className="md:hidden absolute right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 flex items-center justify-center rounded-full shadow-lg transition-all duration-300 active:scale-95 bg-white/90 backdrop-blur-sm border border-gray-200"
+                style={{color: '#7F0606'}}
+                aria-label="Next testimonial"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </button>
+
+              {/* Desktop Navigation Buttons */}
+              <button
+                onClick={prevTestimonial}
+                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 w-12 h-12 items-center justify-center rounded-full shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-110"
+                style={{backgroundColor: '#7F0606', color: 'white'}}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#5A0404';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#7F0606';
+                }}
+                aria-label="Previous testimonial"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+              </button>
+
+              <button
+                onClick={nextTestimonial}
+                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 w-12 h-12 items-center justify-center rounded-full shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-110"
+                style={{backgroundColor: '#7F0606', color: 'white'}}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#5A0404';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#7F0606';
+                }}
+                aria-label="Next testimonial"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </button>
+
+              <div 
+                className="overflow-hidden md:mx-16 cursor-grab active:cursor-grabbing select-none"
+                onTouchStart={handleDragStart}
+                onTouchMove={handleDragMove}
+                onTouchEnd={handleDragEnd}
+                onMouseDown={handleDragStart}
+                onMouseMove={handleDragMove}
+                onMouseUp={handleDragEnd}
+                onMouseLeave={handleDragEnd}
+              >
+                <div 
+                  className="flex"
+                  style={{ 
+                    transform: `translateX(calc(-${testimonialSlide * 100}% + ${isDragging ? dragOffset : 0}px))`,
+                    transition: isDragging ? 'none' : 'transform 0.5s ease-out'
+                  }}
+                >
+                  {/* Mobile: Individual testimonials */}
+                  {isMobile ? (
+                    testimonials.map((testimonial, index) => (
+                      <div 
+                        key={index}
+                        className="w-full flex-shrink-0 px-2"
+                      >
+                        <div className="bg-gray-50 rounded-2xl p-5 relative shadow-md mx-6">
+                          <div className="absolute top-4 right-4 text-[#7F0606]/20">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-8 h-8">
+                              <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+                            </svg>
+                          </div>
+                          <div className="flex items-center mb-4">
+                            <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${testimonial.gradient} flex items-center justify-center text-white font-bold text-lg`}>
+                              {testimonial.initials}
+                            </div>
+                            <div className="ml-3">
+                              <h4 className="font-semibold text-gray-900 text-sm">{testimonial.name}</h4>
+                              <p className="text-xs text-gray-500">{testimonial.role}</p>
+                            </div>
+                          </div>
+                          <div className="flex mb-3">
+                            {[1,2,3,4,5].map((star) => (
+                              <svg key={star} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-yellow-400">
+                                <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
+                              </svg>
+                            ))}
+                          </div>
+                          <p className="text-gray-600 leading-relaxed text-sm mb-3">
+                            &quot;{testimonial.text}&quot;
+                          </p>
+                          <p className="text-xs text-gray-400">Pesanan: {testimonial.order}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                  /* Desktop: 3 per slide */
+                  Array.from({ length: totalTestimonialSlides }).map((_, slideIndex) => (
+                    <div 
+                      key={slideIndex}
+                      className="w-full flex-shrink-0"
+                    >
+                      <div className="grid grid-cols-3 gap-6">
+                        {getVisibleTestimonials(slideIndex).map((testimonial, index) => (
+                          <div 
+                            key={index}
+                            className="bg-gray-50 rounded-2xl p-6 relative hover:shadow-lg transition-shadow"
+                          >
+                            <div className="absolute top-4 right-4 text-[#7F0606]/20">
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-10 h-10">
+                                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+                              </svg>
+                            </div>
+                            <div className="flex items-center mb-4">
+                              <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${testimonial.gradient} flex items-center justify-center text-white font-bold text-lg`}>
+                                {testimonial.initials}
+                              </div>
+                              <div className="ml-3">
+                                <h4 className="font-semibold text-gray-900 text-sm">{testimonial.name}</h4>
+                                <p className="text-xs text-gray-500">{testimonial.role}</p>
+                              </div>
+                            </div>
+                            <div className="flex mb-3">
+                              {[1,2,3,4,5].map((star) => (
+                                <svg key={star} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-yellow-400">
+                                  <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
+                                </svg>
+                              ))}
+                            </div>
+                            <p className="text-gray-600 leading-relaxed text-sm mb-3">
+                              &quot;{testimonial.text}&quot;
+                            </p>
+                            <p className="text-xs text-gray-400">Pesanan: {testimonial.order}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+            </div>
+
+            {/* Dot Indicators */}
+            <div className="flex justify-center items-center gap-2 mt-8">
+              {Array.from({ length: totalTestimonialSlides }).map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    if (!testimonialAnimating) {
+                      setTestimonialAnimating(true);
+                      setTestimonialSlide(index);
+                      setTimeout(() => setTestimonialAnimating(false), 400);
+                    }
+                  }}
+                  className={`h-2.5 rounded-full transition-all duration-300 ${
+                    testimonialSlide === index 
+                      ? 'bg-[#7F0606] w-8' 
+                      : 'bg-gray-300 hover:bg-gray-400 w-2.5'
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+
+            {/* Mobile swipe hint */}
+            <p className="text-center text-xs text-gray-400 mt-4 md:hidden">
+              Geser untuk melihat testimoni lainnya
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Gallery Section */}
-      <section id="gallery" className="py-20 bg-white">
+      <section id="gallery" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Galeri Karya Kami</h2>
